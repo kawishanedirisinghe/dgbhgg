@@ -340,7 +340,7 @@ function callLLMWithContext($chatId, $message, $fileContext = null) {
         // Detect if the message is requesting code
         $isCodeRequest = preg_match('/\b(code|script|program|python|javascript|php|java|c\+{0,2}|sql|html|css)\b/i', $message);
         if ($isCodeRequest && !$fileContext) {
-            $responseText = "\n```plaintext\n" . $responseText . "\n```";
+            $responseText = "\n\n" . $responseText . "\n";
         } elseif ($isCodeRequest && $fileContext) {
             $responseText = "\n```{$fileContext['type']}\n" . $responseText . "\n```";
         }
