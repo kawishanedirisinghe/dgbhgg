@@ -22,14 +22,14 @@
 // ======================
 
 // Telegram Bot Token from BotFather
-$telegramToken = '7623922223:AAHaPW6hmLVBllxtKrZXotunEB-yps9K0kU';
+$telegramToken = '7532448232:AAFoD9-t978hl-vGwO27sRDuaNI8quzL_AM';
 $apiUrl = "https://api.telegram.org/bot{$telegramToken}/";
 
 // Admin configuration (Telegram user IDs)
-$adminUsers = ['1819367957', '1'];
+$adminUsers = ['1819367957', '5860415170'];
 
 // Rate limiting configuration
-$rateLimit = 100; // Messages per minute
+$rateLimit = 20; // Messages per minute
 $rateLimitInterval = 60; // Seconds
 
 // System paths
@@ -42,7 +42,7 @@ $llmEndpoint = "https://8pe3nv3qha.execute-api.us-east-1.amazonaws.com/default/l
 $llmLinkParam = "writecream.com";
 
 // Maximum file size (5MB)
-define('MAX_FILE_SIZE', 5 * 1024 * 1024);
+define('MAX_FILE_SIZE', 1 * 5 * 1024);
 
 // Maximum response size for text messages
 define('MAX_RESPONSE_SIZE', 500); // Characters
