@@ -45,7 +45,7 @@ $llmLinkParam = "writecream.com";
 define('MAX_FILE_SIZE', 1 * 5 * 1024);
 
 // Maximum response size for text messages
-define('MAX_RESPONSE_SIZE', 500); // Characters
+define('MAX_RESPONSE_SIZE', 4000); // Characters
 
 // Supported file types
 $supportedFileTypes = ['php', 'py', 'js', 'html', 'txt', 'go', 'sh'];
