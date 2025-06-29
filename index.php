@@ -568,7 +568,7 @@ function handleUpdate($update) {
                 CURLOPT_POSTFIELDS => [
                     'chat_id' => $chatId,
                     'document' => new CURLFile(realpath($tempFileName), 'text/plain', 'response.txt'),
-                    'caption' => 'Response too fucking long, here’s the full shit as a file. Or View fucking Url Use' . basename($tempFileName)
+                    'caption' => 'Response too fucking long, here’s the full shit as a file. Or View fucking Url Usehttps://catseek.onrender.com/tmp/' . basename($tempFileName)
                 ],
                 CURLOPT_HTTPHEADER => [
                     "Content-Type: multipart/form-data"
