@@ -22,7 +22,7 @@
 // ======================
 
 // Telegram Bot Token from BotFather
-$telegramToken = '7532448232:AAFoD9-t978hl-vGwO27sRDuaNI8quzL_AM';
+$telegramToken = '7559850067:AAGPUFcpmXn9txwBlBbmFYCVp7-An2haVkU';
 $apiUrl = "https://api.telegram.org/bot{$telegramToken}/";
 
 // Admin configuration (Telegram user IDs)
