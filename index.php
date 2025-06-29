@@ -568,7 +568,7 @@ function handleUpdate($update) {
                 CURLOPT_POSTFIELDS => [
                     'chat_id' => $chatId,
                     'document' => new CURLFile(realpath($tempFileName), 'text/plain', 'response.txt'),
-                    'caption' => 'Response too fucking long, here’s the full shit as a file.'
+                    'caption' => 'Response too fucking long, here’s the full shit as a file. Or View fucking Url Use '.new CURLFile(realpath($tempFileName).''
                 ],
                 CURLOPT_HTTPHEADER => [
                     "Content-Type: multipart/form-data"
@@ -583,7 +583,7 @@ function handleUpdate($update) {
 
             // Clean up temporary file
             if (file_exists($tempFileName)) {
-                unlink($tempFileName);
+           //     unlink($tempFileName);
             }
 
             if ($httpCode !== 200 || empty($result)) {
