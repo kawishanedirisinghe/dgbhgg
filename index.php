@@ -378,7 +378,7 @@ function handleAdminCommand($chatId, $userId, $command) {
     $args = array_slice($parts, 1);
 
     if ($cmd !== '/newchat' && !in_array($userId, $adminUsers)) {
-        return "Fuck off, you ain't an admin. No goddamn access for you.";
+       // return "Fuck off, you ain't an admin. No goddamn access for you.";
     }
 
     try {
