@@ -22,11 +22,11 @@
 // ======================
 
 // Telegram Bot Token from BotFather
-$telegramToken = '7559850067:AAGPUFcpmXn9txwBlBbmFYCVp7-An2haVkU';
+$telegramToken = '7559850067:AAFEsGwG7GOuCtr745WoSk-8WjuMMNYKS68';
 $apiUrl = "https://api.telegram.org/bot{$telegramToken}/";
 
 // Admin configuration (Telegram user IDs)
-$adminUsers = ['1819367957', '5860415170'];
+$adminUsers = ['819367957', '5860415170'];
 
 // Rate limiting configuration
 $rateLimit = 20; // Messages per minute
