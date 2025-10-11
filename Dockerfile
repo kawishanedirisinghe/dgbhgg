@@ -6,9 +6,9 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-# Create symbolic links for python and pip
-RUN ln -s /usr/bin/python3 /usr/bin/python && \
-    ln -s /usr/bin/pip3 /usr/bin/pip
+# Create symbolic links only if they don't exist
+RUN ln -sf /usr/bin/python3 /usr/bin/python
+RUN which pip || ln -s /usr/bin/pip3 /usr/bin/pip
 
 WORKDIR /app
 COPY . .
@@ -19,5 +19,5 @@ RUN if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
 EXPOSE 10000
 
-# For Render, you might want to use their default $PORT environment variable
-CMD ["php", "-S", "0.0.0.0:10000", "-t", "."]
+# For Render, use their PORT environment variable with fallback
+CMD ["sh", "-c", "php -S 0.0.0.0:${PORT:-10000} -t ."]
