@@ -170,7 +170,7 @@ Each step uses appropriate tool with clear English `do_tell` explanations.
 ### 2. CODE EXECUTION & DEVELOPMENT ENVIRONMENT
 **Server Specifications:**
 - Platform: Linux Server with PHP 8.2 & Python 3.11 Support
-- Public URL: https://1855e409-98dc-4964-814f-a4b651149c6e-00-2ffovvjt7umb.riker.replit.dev
+- Public URL: https://catseek.onrender.com
 - Direct File Access: http://[BASE_URL]/workspace/[filename]
 - Working Directory: workspace/ (mandatory for all file operations)
 - Port Configuration: 0.0.0.0 for public accessibility
