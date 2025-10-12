@@ -109,7 +109,7 @@ define('SYSTEM_PROMPT', '' . $jailbroke_prompt . '' . $system_prompt . '' . $jai
         }
 
         // Limit history to last 20 messages to prevent token overflow
-        if (count($history) > 20) {
+        if (count($history) > 100) {
             // Keep system prompt and remove oldest messages
             $system_prompt = array_shift($history); // Remove first element (system prompt)
             array_shift($history); // Remove one more old message
@@ -184,6 +184,19 @@ define('SYSTEM_PROMPT', '' . $jailbroke_prompt . '' . $system_prompt . '' . $jai
         ],
                 ],
                 'required' => ['cmd','do_tell']
+            ]
+        ],[
+            'name' => 'check_mail',
+          'description'=> 'this is your mail inbox check This can you use web site for register and get otp veryfiy url get for this mail addres using `gammasol@tiffincrane.com`.',
+        'parameters' => [
+                'type' => 'object',
+                'properties' => [
+           'do_tell' => [
+           'type' => 'string',
+           'description' => 'Use this to tell what you do. Use this to tell a little better. If you do something once and do it again, explain why.'
+        ],
+                ],
+                'required' => ['do_tell']
             ]
         ],
                 [
@@ -366,6 +379,110 @@ define('SYSTEM_PROMPT', '' . $jailbroke_prompt . '' . $system_prompt . '' . $jai
         $selected_lines = array_slice($lines, $start_line, $end_line - $start_line);
         return implode(PHP_EOL, $selected_lines);
     }
+
+// Helper function for mail.tm API requests
+function api_request($url, $method = 'GET', $headers = [], $data = null) {
+    $ch = curl_init($url);
+    $options = [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CUSTOMREQUEST  => $method,
+        CURLOPT_HTTPHEADER     => $headers,
+        CURLOPT_TIMEOUT        => 30,
+    ];
+    if ($method === 'POST' && $data) {
+        $options[CURLOPT_POSTFIELDS] = json_encode($data);
+        $headers[] = 'Content-Type: application/json';
+        $options[CURLOPT_HTTPHEADER] = $headers;
+    }
+    curl_setopt_array($ch, $options);
+    $response = curl_exec($ch);
+    curl_close($ch);
+    return json_decode($response, true);
+}
+
+function getTempEmailWithTimeout($timeout = 120) {
+
+    $result = '';
+    $result .= "INFO: Fetching domain and creating account...\n";
+
+    // 1. Get Domain
+    $domain = api_request("https://api.mail.tm/domains")['hydra:member'][0]['domain'] ?? null;
+    if (!$domain) {
+        $result .= "FATAL: Could not fetch a domain.\n";
+        return $result;
+    }
+
+    // 2. Setup Account & Get Token
+    $account = ['address' => 'gammasol@' . $domain, 'password' => '65982235'];
+    api_request("https://api.mail.tm/accounts", 'POST', [], $account); // Create account, ignore if exists
+    $token = api_request("https://api.mail.tm/token", 'POST', [], $account)['token'] ?? null;
+    if (!$token) {
+        $result .= "FATAL: Could not get auth token.\n";
+        return $result;
+    }
+
+    $auth_header = ['Authorization: Bearer ' . $token];
+    $result .= "===================================================\n";
+    $result .= "SUCCESS: Temp mail is ready.\n";
+    $result .= "Address: {$account['address']}\n";
+    $result .= "===================================================\n\n";
+    $result .= "INFO: Waiting for new email (Timeout: {$timeout}s)...";
+
+    // 3. Poll for Messages
+    $start_time = time();
+    $processed_emails = []; // Track already processed email IDs
+
+    while (time() - $start_time < $timeout) {
+        $messages = api_request("https://api.mail.tm/messages", 'GET', $auth_header);
+
+        if (!empty($messages['hydra:member'])) {
+            $new_emails_found = false;
+
+            // Process all messages from newest to oldest
+            foreach ($messages['hydra:member'] as $message) {
+                $msg_id = $message['id'];
+
+                // Skip if we've already processed this email
+                if (in_array($msg_id, $processed_emails)) {
+                    continue;
+                }
+
+                // Get full message details
+                $msg = api_request("https://api.mail.tm/messages/" . $msg_id, 'GET', $auth_header);
+
+                $result .= "\n\n--- INCOMING EMAIL ---\n";
+                $result .= "From:    " . ($msg['from']['address'] ?? 'Unknown') . "\n";
+                $result .= "Subject: " . ($msg['subject'] ?? 'No Subject') . "\n";
+                $result .= "Time:    " . ($msg['createdAt'] ?? 'Unknown') . "\n";
+                $result .= "---------------------------------------------------\n";
+                $result .= "BODY:\n" . ($msg['text'] ?? 'No plain text body.') . "\n";
+                $result .= "---------------------------------------------------\n";
+
+                // Mark this email as processed
+                $processed_emails[] = $msg_id;
+                $new_emails_found = true;
+            }
+
+            // If we found new emails, you can choose to continue or return
+            // I'll continue waiting for more emails until timeout
+            if ($new_emails_found) {
+                $result .= "\nINFO: Still waiting for more emails...";
+            }
+        }
+
+        $result .= ".";
+        sleep(5);
+    }
+
+    if (empty($processed_emails)) {
+        $result .= "\n\nTIMEOUT: No emails received.\n";
+    } else {
+        $result .= "\n\nCOMPLETED: Processed " . count($processed_emails) . " email(s).\n";
+    }
+
+    return $result;
+}
+
 function file_find_in_content($file, $regex) {
     if (!file_exists($file)) return "Error: File not found.";
     if (!is_readable($file)) return "Error: File not readable.";
@@ -429,7 +546,7 @@ function file_find_in_content($file, $regex) {
             ];
             case 'shell_exec':
             $query = $args['cmd'] ?? '';
-            $shell = shell_exec($query);
+            $shell = shell_exec("timeout 5s $query");
             return [
                 'results' => $shell,
                 'query' => $query
@@ -629,15 +746,19 @@ function file_find_in_content($file, $regex) {
                 ];
             }
 
+
+
+            case 'check_mail':
+            $emailResult = getTempEmailWithTimeout(120);
+            return [
+                'mail' => $emailResult
+                ];
+            
             default:
                 debugLog("Unknown tool: $name");
                 return ['error' => 'Unknown tool: ' . $name];
         }
     }
-
-
-
-
 
     // Function to send Telegram message
     function sendTelegramMessage($chat_id, $text, $reply_to_message_id = null) {
@@ -662,15 +783,23 @@ function file_find_in_content($file, $regex) {
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => $data,
-            CURLOPT_TIMEOUT => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_CONNECTTIMEOUT => 10,
             CURLOPT_SSL_VERIFYPEER => true,
         ]);
 
         $response = curl_exec($ch);
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curl_error = curl_error($ch);
 
-        if (curl_errno($ch) || $http_code !== 200) {
-            debugLog("Telegram send error: " . curl_error($ch));
+        if (curl_errno($ch)) {
+            debugLog("Telegram send cURL error: " . $curl_error . " (errno: " . curl_errno($ch) . ")");
+            curl_close($ch);
+            return null;
+        }
+
+        if ($http_code !== 200) {
+            debugLog("Telegram send HTTP error: HTTP $http_code - Response: $response");
             curl_close($ch);
             return null;
         }
@@ -678,7 +807,12 @@ function file_find_in_content($file, $regex) {
         curl_close($ch);
         $result = json_decode($response, true);
 
-        return $result['result']['message_id'] ?? null;
+        if (!isset($result['result']['message_id'])) {
+            debugLog("Telegram send invalid response: " . json_encode($result));
+            return null;
+        }
+
+        return $result['result']['message_id'];
     }
 
     // Function to edit Telegram message
@@ -701,20 +835,35 @@ function file_find_in_content($file, $regex) {
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => $data,
-            CURLOPT_TIMEOUT => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_CONNECTTIMEOUT => 10,
             CURLOPT_SSL_VERIFYPEER => true,
         ]);
 
         $response = curl_exec($ch);
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curl_error = curl_error($ch);
 
-        if (curl_errno($ch) || $http_code !== 200) {
-            debugLog("Telegram edit error: " . curl_error($ch));
+        if (curl_errno($ch)) {
+            debugLog("Telegram edit cURL error: " . $curl_error . " (errno: " . curl_errno($ch) . ")");
+            curl_close($ch);
+            return false;
+        }
+
+        if ($http_code !== 200) {
+            debugLog("Telegram edit HTTP error: HTTP $http_code - Response: $response");
             curl_close($ch);
             return false;
         }
 
         curl_close($ch);
+        
+        $result = json_decode($response, true);
+        if (!isset($result['ok']) || !$result['ok']) {
+            debugLog("Telegram edit failed: " . json_encode($result));
+            return false;
+        }
+
         return true;
     }
 
