@@ -6,8 +6,8 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
 # Bot configuration
-BOT_TOKEN = os.getenv('BOT_TOKEN', 'YOUR_BOT_TOKEN_HERE')
-ADMIN_IDS = [int(x) for x in os.getenv('ADMIN_IDS', '123456789').split(',')]
+BOT_TOKEN = os.getenv('BOT_TOKEN', '5995557080:AAHrli8ZJYwV_mXSNkWB3SPpnpsWzqFt8_c')
+ADMIN_IDS = [int(x) for x in os.getenv('ADMIN_IDS', '1819367957').split(',')]
 
 # User data file
 USER_FILE = '/app/users.yaml'
